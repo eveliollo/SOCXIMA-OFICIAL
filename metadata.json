@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Remix: SOCXIMA",
+  "description": "SOCXIMA 1000X — Dynamic high-speed crypto multi-agent network and digital asset control deck.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
