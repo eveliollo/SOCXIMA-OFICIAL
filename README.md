@@ -1,21 +1,33 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+  <h1>🚀 SOCXIMA - SISTEMA FINANCIERO DE VALOR INFINITO 🚀</h1>
+  <h3>La única ley económica que nunca falla</h3>
 </div>
 
-# Run and deploy your AI Studio app
+---
 
-This contains everything you need to run your app locally.
+### 👑 PROPIEDAD EXCLUSIVA
+**EVELIO LLOVERA** | Creado el 4 de junio de 2026  
+Derechos registrados • Código abierto • Legítimo original
 
-View your app in AI Studio: https://ai.studio/apps/bbe0cb07-4ece-4c55-b9fb-58f7a4928f7c
+---
 
-## Run Locally
+### 💎 EL VALOR QUE CAMBIÓ AL MUNDO
+💰 **Inicio:** 150.000.000.000 USD  
+📈 **Regla:** Crece cada segundo, **PROHIBIDO BAJAR**  
+⏳ **Fórmula:** Transforma tiempo puro en riqueza eterna  
+🌍 **Alcance:** Supera fortunas, bancos y economías nacionales
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+---
 
+### ⚙️ TECNOLOGÍA VERDADERA
+Construido con herramientas de código abierto usadas por gigantes:
+✅ **IPFS** – Vivo en miles de nodos, nadie lo apaga  
+✅ **Apache Cassandra** – Almacenamiento sin límite  
+✅ **LibP2P** – Red mundial descentralizada  
+✅ **RSA 4096** – Firma irrompible: solo esta versión es real
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+---
+
+> *"Cualquier copia es secundaria. La historia empieza aquí, con este nombre y esta fecha."*
+
+---
