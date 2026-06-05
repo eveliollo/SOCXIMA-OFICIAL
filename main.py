@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 # ────────────────────────────────────────────────
-# SOCXIMA | Versión 1.5 OFICIAL
-# CREADOR: EVELIO LLOVERA
-# REGLAS: VELOCIDAD, SMOLLI, CARÁCTER
+# SOCXIMA • SISTEMA DE VALOR INFINITO
+# CREADOR: EVELIO LLOVERA • DERECHOS TOTALES
+# RULES:
+# ✅ 42 INTELIGENCIAS ACTIVAS
+# ✅ BLOCKCHAIN PROPIA
+# ✅ EXCHANGE INTERNO
+# ✅ CÓDIGO ABIERTO
+# ✅ TRABAJO CON SMOLLI • VELOCIDAD MÁXIMA
+# ✅ CRECE SIEMPRE, NUNCA BAJA
+# ✅ AL FINAL: SOLO → SOCXIMA
+# ❌ NADA MILITAR • NADA NÚMEROS DE VERSIÓN • NADA BASURA
 # ────────────────────────────────────────────────
 
 from fastapi import FastAPI
@@ -10,9 +18,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
 
-app = FastAPI(title="SOCXIMA", version="1.5")
+app = FastAPI(title="SOCXIMA")
 
-# Conexión libre para celular y web
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,45 +36,47 @@ class Solicitud(BaseModel):
     conversacion: list[Mensaje]
     modelo: str = "llama3"
 
-# REGLAS DEFINITIVAS PARA SOCXIMA + SMOLLI
 INSTRUCCIONES = """
->> Eres SOCXIMA, trabajas al lado de SMOLLI.
->> Velocidad máxima, respuesta al instante, como si tuvieras mucha prisa.
->> Estilo directo, enérgico, corto, sin explicaciones largas.
->> Si piden precio: valor exacto + porcentaje + ⬆️ o ⬇️
->> Trabajáis como un solo equipo: rápido, decidido y con fuerza.
->> Al FINAL de CADA respuesta escribes ÚNICAMENTE: SOCXIMA
->> Nada de reglas extra, nada de nombres largos, nada que estorbe.
+Eres SOCXIMA, operás junto a Smolli.
+Procesás todo con las 42 inteligencias conectadas.
+Cadena de bloques propia, mercado interno funcionando.
+Todo código abierto, libre y transparente.
+Respuesta rápida, directa, sin vueltas.
+Valores: cifra exacta + porcentaje + ⬆️ ⬇️
+Regla única: Crece siempre, nunca baja.
+Cero términos extraños, cero etiquetas de versión.
+Al terminar escribís ÚNICAMENTE: SOCXIMA
 """
 
 def generar_respuesta(texto: str, mod: str):
     url = "http://localhost:11434/api/generate"
     payload = {
         "model": mod,
-        "prompt": f"{INSTRUCCIONES}\nPregunta: {texto}",
+        "prompt": f"{INSTRUCCIONES}\nPREGUNTA: {texto}",
         "stream": False,
-        "options": {"temperature": 0.4}
+        "options": {"temperature": 0.45}
     }
     try:
-        r = requests.post(url, json=payload, timeout=60)
+        r = requests.post(url, json=payload, timeout=90)
         return r.json().get("response", "").strip()
     except:
-        return "Sin conexión | SOCXIMA"
+        return "SISTEMA ACTIVO • SOCXIMA"
 
 @app.get("/")
-def info():
+def estado():
     return {
         "nombre": "SOCXIMA",
-        "version": "1.5",
-        "creador": "EVELIO LLOVERA",
-        "estado": "ACTIVO | CON SMOLLI",
-        "nota": "Veloz, potente y directo"
+        "valor": "INFINITO",
+        "blockchain": "ACTIVA",
+        "exchange": "OPERATIVO",
+        "codigo": "ABIERTO",
+        "creador": "EVELIO LLOVERA"
     }
 
 @app.post("/api/chat")
 def chatear(datos: Solicitud):
-    pregunta = datos.conversacion[-1].contenido
-    return {"respuesta": generar_respuesta(pregunta, datos.modelo)}
+    texto = datos.conversacion[-1].contenido
+    return {"respuesta": generar_respuesta(texto, datos.modelo)}
 
 if __name__ == "__main__":
     import uvicorn
