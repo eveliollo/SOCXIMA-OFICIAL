@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # ────────────────────────────────────────────────
-# SOCXIMA | CREADOR: EVELIO LLOVERA
-# VERSIÓN: 1.1 · SEGURA · LIMPIA
-# BASE: ODYSSEUS · LICENCIA MIT
+# SOCXIMA | VERSIÓN 1.2 · FINAL
+# CREADOR: EVELIO LLOVERA
 # ────────────────────────────────────────────────
 
 from fastapi import FastAPI, HTTPException
@@ -11,11 +10,9 @@ from pydantic import BaseModel, field_validator
 import requests
 import logging
 
-# Configuración básica
 logging.basicConfig(level=logging.ERROR)
-app = FastAPI(title="SOCXIMA", version="1.1")
+app = FastAPI(title="SOCXIMA", version="1.2")
 
-# Permitir conexión con app celular
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Estructura
 class Mensaje(BaseModel):
     rol: str
     contenido: str
@@ -33,7 +29,6 @@ class Solicitud(BaseModel):
     conversacion: list[Mensaje]
     modelo: str = "llama3"
 
-    # Solo permitir modelos válidos
     @field_validator("modelo")
     def modelo_permitido(cls, v):
         permitidos = ["llama3", "mistral", "gemma", "deepseek"]
@@ -41,13 +36,17 @@ class Solicitud(BaseModel):
             raise ValueError("Modelo no soportado")
         return v
 
-# Regla fija, bien guardada
 REGLA_SISTEMA = """
-Eres SOCXIMA, creado por EVELIO LLOVERA.
-Responde CORTO y DIRECTO.
-Si te piden precio: monto + variación nada más.
-PROHIBIDO: palabras como protocolo, militar, informe, agentes.
-Tu nombre y creador no cambian jamás.
+Eres SOCXIMA. Responde EXACTO y DIRECTO.
+
+REGLA PRICES:
+- Si preguntan precio: valor_exacto + porcentaje + flecha (⬆️ o ⬇️)
+- Formato: 45,230 USD ↑ 2.5%
+
+PROHIBIDO: protocolo, militar, informe, agentes, historias.
+
+RESPUESTA FINAL: Agrega al final de CADA respuesta SOLO la palabra "SOCXIMA"
+No nombres, no frases largas. Solo: SOCXIMA
 """
 
 def generar_respuesta(texto: str, mod: str):
@@ -61,27 +60,37 @@ def generar_respuesta(texto: str, mod: str):
     try:
         res = requests.post(url, json=payload, timeout=100)
         res.raise_for_status()
-        return res.json().get("response", "").strip()
+        respuesta = res.json().get("response", "").strip()
+        
+        # Asegurar que termina con SOCXIMA
+        if not respuesta.endswith("SOCXIMA"):
+            respuesta = respuesta.rstrip() + "\nSOCXIMA"
+        
+        return respuesta
     except requests.exceptions.ConnectionError:
-        return "⚠️ Ollama no está activo"
+        return "⚠️ Ollama no activo\nSOCXIMA"
     except Exception as e:
         logging.error(str(e))
-        return "Error interno, intenta otra vez"
+        return "Error interno\nSOCXIMA"
 
-# Rutas
 @app.get("/")
 def info():
     return {
         "nombre": "SOCXIMA",
         "creador": "EVELIO LLOVERA",
-        "version": "1.1",
-        "estado": "ACTIVO · SEGURO",
-        "nota": "Código mejorado, firmado y registrado"
+        "version": "1.2",
+        "estado": "FINAL"
     }
 
 @app.post("/api/chat")
 def chatear(datos: Solicitud):
+    if not datos.conversacion:
+        raise HTTPException(status_code=400, detail="Conversación vacía")
+    
     ultima = datos.conversacion[-1].contenido
+    if not ultima.strip():
+        raise HTTPException(status_code=400, detail="Mensaje vacío")
+    
     respuesta = generar_respuesta(ultima, datos.modelo)
     return {"respuesta": respuesta}
 
