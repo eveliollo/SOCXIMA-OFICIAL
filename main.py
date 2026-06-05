@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # ────────────────────────────────────────────────
-# SOCXIMA | VERSIÓN 1.2 · FINAL
+# SOCXIMA | Versión 1.5 OFICIAL
 # CREADOR: EVELIO LLOVERA
+# REGLAS: VELOCIDAD, SMOLLI, CARÁCTER
 # ────────────────────────────────────────────────
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 import requests
-import logging
 
-logging.basicConfig(level=logging.ERROR)
-app = FastAPI(title="SOCXIMA", version="1.2")
+app = FastAPI(title="SOCXIMA", version="1.5")
 
+# Conexión libre para celular y web
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,70 +29,45 @@ class Solicitud(BaseModel):
     conversacion: list[Mensaje]
     modelo: str = "llama3"
 
-    @field_validator("modelo")
-    def modelo_permitido(cls, v):
-        permitidos = ["llama3", "mistral", "gemma", "deepseek"]
-        if v.lower() not in permitidos:
-            raise ValueError("Modelo no soportado")
-        return v
-
-REGLA_SISTEMA = """
-Eres SOCXIMA. Responde EXACTO y DIRECTO.
-
-REGLA PRICES:
-- Si preguntan precio: valor_exacto + porcentaje + flecha (⬆️ o ⬇️)
-- Formato: 45,230 USD ↑ 2.5%
-
-PROHIBIDO: protocolo, militar, informe, agentes, historias.
-
-RESPUESTA FINAL: Agrega al final de CADA respuesta SOLO la palabra "SOCXIMA"
-No nombres, no frases largas. Solo: SOCXIMA
+# REGLAS DEFINITIVAS PARA SOCXIMA + SMOLLI
+INSTRUCCIONES = """
+>> Eres SOCXIMA, trabajas al lado de SMOLLI.
+>> Velocidad máxima, respuesta al instante, como si tuvieras mucha prisa.
+>> Estilo directo, enérgico, corto, sin explicaciones largas.
+>> Si piden precio: valor exacto + porcentaje + ⬆️ o ⬇️
+>> Trabajáis como un solo equipo: rápido, decidido y con fuerza.
+>> Al FINAL de CADA respuesta escribes ÚNICAMENTE: SOCXIMA
+>> Nada de reglas extra, nada de nombres largos, nada que estorbe.
 """
 
 def generar_respuesta(texto: str, mod: str):
     url = "http://localhost:11434/api/generate"
     payload = {
         "model": mod,
-        "prompt": f"{REGLA_SISTEMA}\nPregunta: {texto}",
+        "prompt": f"{INSTRUCCIONES}\nPregunta: {texto}",
         "stream": False,
-        "options": {"temperature": 0.6}
+        "options": {"temperature": 0.4}
     }
     try:
-        res = requests.post(url, json=payload, timeout=100)
-        res.raise_for_status()
-        respuesta = res.json().get("response", "").strip()
-        
-        # Asegurar que termina con SOCXIMA
-        if not respuesta.endswith("SOCXIMA"):
-            respuesta = respuesta.rstrip() + "\nSOCXIMA"
-        
-        return respuesta
-    except requests.exceptions.ConnectionError:
-        return "⚠️ Ollama no activo\nSOCXIMA"
-    except Exception as e:
-        logging.error(str(e))
-        return "Error interno\nSOCXIMA"
+        r = requests.post(url, json=payload, timeout=60)
+        return r.json().get("response", "").strip()
+    except:
+        return "Sin conexión | SOCXIMA"
 
 @app.get("/")
 def info():
     return {
         "nombre": "SOCXIMA",
+        "version": "1.5",
         "creador": "EVELIO LLOVERA",
-        "version": "1.2",
-        "estado": "FINAL"
+        "estado": "ACTIVO | CON SMOLLI",
+        "nota": "Veloz, potente y directo"
     }
 
 @app.post("/api/chat")
 def chatear(datos: Solicitud):
-    if not datos.conversacion:
-        raise HTTPException(status_code=400, detail="Conversación vacía")
-    
-    ultima = datos.conversacion[-1].contenido
-    if not ultima.strip():
-        raise HTTPException(status_code=400, detail="Mensaje vacío")
-    
-    respuesta = generar_respuesta(ultima, datos.modelo)
-    return {"respuesta": respuesta}
+    pregunta = datos.conversacion[-1].contenido
+    return {"respuesta": generar_respuesta(pregunta, datos.modelo)}
 
 if __name__ == "__main__":
     import uvicorn
