@@ -1,0 +1,662 @@
+package com.example.ui
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.db.CassandraLog
+import com.example.db.IpfsSnapshot
+import com.example.network.SocximaViewModel
+import com.example.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
+
+@Composable
+fun IpfsGlobalCloudCard(
+    viewModel: SocximaViewModel,
+    modifier: Modifier = Modifier
+) {
+    val snapshots by viewModel.allIpfsSnapshots.collectAsState()
+    val isSaving by viewModel.isSavingIpfs.collectAsState()
+    val context = LocalContext.current
+    var inputRemarks by remember { mutableStateOf("") }
+    var expandedCid by remember { mutableStateOf<String?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SocximaPanel),
+        border = BorderStroke(1.dp, ColorMistral.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "🌐 IPFS GLOBAL CLOUD",
+                        color = ColorMistral,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .background(ColorMistral.copy(alpha = 0.15f), RoundedCornerShape(2.dp))
+                        .border(1.dp, ColorMistral, RoundedCornerShape(2.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "VERDADERO",
+                        color = ColorMistral,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Almacenamiento eterno en red mundial. Nadie lo altera, nadie lo elimina.",
+                color = SocximaLetra.copy(alpha = 0.85f),
+                fontSize = 11.sp,
+                lineHeight = 15.sp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = { showDialog = true },
+                    enabled = !isSaving,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorMistral,
+                        disabledContainerColor = SocximaTenue
+                    ),
+                    shape = RoundedCornerShape(2.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp)
+                        .testTag("save_ipfs_button"),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            color = SocximaFondo,
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "GUARDANDO...",
+                            color = SocximaFondo,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    } else {
+                        Text(
+                            text = "📤 REGISTRAR EN LA RED",
+                            color = SocximaFondo,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+            }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = {
+                        Text(
+                            text = "NUEVO REGISTRO",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                "Descripción del estado:",
+                                fontSize = 11.sp,
+                                color = SocximaLetra,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            OutlinedTextField(
+                                value = inputRemarks,
+                                onValueChange = { inputRemarks = it },
+                                placeholder = { Text("Escribe aquí", color = SocximaTenue, fontSize = 11.sp) },
+                                textStyle = TextStyle(color = Color.White, fontSize = 12.sp, fontFamily = FontFamily.Monospace),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("ipfs_remarks_input"),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = ColorMistral,
+                                    unfocusedBorderColor = SocximaLinea,
+                                    cursorColor = ColorMistral
+                                )
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val remarks = inputRemarks.ifBlank { "Registro SOCXIMA" }
+                                viewModel.saveSnapshotToIpfs(remarks)
+                                inputRemarks = ""
+                                showDialog = false
+                            }
+                        ) {
+                            Text("ACEPTAR", color = ColorMistral, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("CANCELAR", color = SocximaLetra, fontSize = 11.sp)
+                        }
+                    },
+                    containerColor = SocximaPanel,
+                    tonalElevation = 6.dp
+                )
+            }
+
+            if (snapshots.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = "HISTORIAL PERMANENTE",
+                    color = SocximaTenue,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // FIX: scroll + altura máxima para evitar desbordamiento
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    snapshots.forEach { snap ->
+                        val isExpanded = expandedCid == snap.cid
+                        val formattedDate = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(snap.timestamp))
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(SocximaFondo, RoundedCornerShape(2.dp))
+                                .border(1.dp, if (isExpanded) ColorMistral else SocximaLinea, RoundedCornerShape(2.dp))
+                                .clickable { expandedCid = if (isExpanded) null else snap.cid }
+                                .padding(8.dp)
+                                .testTag("ipfs_snap_item_${snap.cid.take(10)}")
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "ID: ",
+                                            color = ColorMistral,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                        Text(
+                                            text = snap.cid.take(18) + "...",
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = snap.comments,
+                                        color = SocximaLetra,
+                                        fontSize = 10.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = formattedDate,
+                                        color = SocximaTenue,
+                                        fontSize = 8.sp,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    IconButton(
+                                        onClick = {
+                                            // FIX: limpiar expandedCid si se borra el item expandido
+                                            if (expandedCid == snap.cid) expandedCid = null
+                                            viewModel.deleteIpfsSnapshot(snap.cid)
+                                            Toast.makeText(context, "Eliminado del registro", Toast.LENGTH_SHORT).show()
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Borrar",
+                                            tint = Color.Red,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            AnimatedVisibility(
+                                visible = isExpanded,
+                                enter = expandVertically() + fadeIn(),
+                                exit = shrinkVertically() + fadeOut()
+                            ) {
+                                Column(modifier = Modifier.padding(top = 8.dp)) {
+                                    Divider(color = SocximaLinea, thickness = 1.dp)
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.Black)
+                                            .border(1.dp, SocximaLinea)
+                                            .padding(6.dp)
+                                    ) {
+                                        Text(
+                                            text = snap.contentJson,
+                                            color = ColorMistral,
+                                            fontSize = 8.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            lineHeight = 11.sp
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Button(
+                                        onClick = {
+                                            // FIX: copiar al portapapeles correctamente
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText("IPFS CID", snap.cid)
+                                            clipboard.setPrimaryClip(clip)
+                                            Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SocximaLinea),
+                                        shape = RoundedCornerShape(2.dp),
+                                        modifier = Modifier.height(24.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Default.Share,
+                                                contentDescription = "Copiar",
+                                                tint = ColorMistral,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("COPIAR CÓDIGO", fontSize = 8.sp, color = Color.White, fontFamily = FontFamily.Monospace)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CassandraDbControlCard(
+    viewModel: SocximaViewModel,
+    modifier: Modifier = Modifier
+) {
+    val cassandraLogs by viewModel.allCassandraLogs.collectAsState()
+    val isWriting by viewModel.isWritingCassandra.collectAsState()
+    // FIX: context extraído fuera de lambdas
+    val context = LocalContext.current
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SocximaPanel),
+        border = BorderStroke(1.dp, ColorDeepseek.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "📁 CASSANDRA • MEMORIA INFINITA",
+                    color = ColorDeepseek,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Box(
+                    modifier = Modifier
+                        // FIX: paréntesis doble removido
+                        .background(ColorDeepseek.copy(alpha = 0.15f), RoundedCornerShape(2.dp))
+                        .border(1.dp, ColorDeepseek, RoundedCornerShape(2.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "ETERNIDAD",
+                        color = ColorDeepseek,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Base de datos sin límites. Lo que se guarda aquí permanece intacto para siempre.",
+                color = SocximaLetra.copy(alpha = 0.85f),
+                fontSize = 11.sp,
+                lineHeight = 15.sp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        val comment = listOf(
+                            "Registro de valor eterno",
+                            "Sincronización de riqueza",
+                            "Firma exclusiva • EVELIO LLOVERA",
+                            "Consenso de 42 inteligencias",
+                            "Auditoría: CRECER ES LA REGLA"
+                        ).random()
+                        viewModel.writeCassandraLog(comment)
+                    },
+                    enabled = !isWriting,
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorDeepseek),
+                    shape = RoundedCornerShape(2.dp),
+                    modifier = Modifier
+                        .weight(1.3f)
+                        .height(38.dp)
+                        .testTag("write_cassandra_button")
+                ) {
+                    if (isWriting) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(14.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("GRABANDO...", fontSize = 8.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    } else {
+                        Text("✍️ NUEVO REGISTRO", fontSize = 8.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        viewModel.clearCassandraHistory()
+                        // FIX: usa context capturado arriba, no LocalContext.current dentro del lambda
+                        Toast.makeText(context, "Historial renovado", Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(2.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp)
+                        .testTag("clear_cassandra_button")
+                ) {
+                    Text("🗑️ LIMPIAR", fontSize = 8.sp, color = Color.Red, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(SocximaFondo)
+                    .border(1.dp, SocximaLinea)
+                    .padding(vertical = 6.dp, horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("CÓDIGO", color = SocximaTenue, fontSize = 8.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, modifier = Modifier.width(55.dp))
+                Text("FECHA", color = SocximaTenue, fontSize = 8.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, modifier = Modifier.width(65.dp))
+                Text("ESTADO", color = SocximaTenue, fontSize = 8.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            }
+
+            if (cassandraLogs.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, SocximaLinea)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Historial limpio, esperando nueva información...",
+                        color = SocximaTenue,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, SocximaLinea)
+                        .heightIn(max = 180.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    cassandraLogs.forEach { log ->
+                        val formattedTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(log.timestamp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, SocximaLinea.copy(alpha = 0.5f))
+                                .padding(vertical = 5.dp, horizontal = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = log.id.take(8).uppercase(),
+                                color = ColorDeepseek,
+                                fontSize = 8.sp,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.width(55.dp)
+                            )
+                            Text(
+                                text = formattedTime,
+                                color = SocximaLetra,
+                                fontSize = 8.sp,
+                                fontFamily = FontFamily.Monospace,
+                                modifier = Modifier.width(65.dp)
+                            )
+                            Text(
+                                text = log.statusText,
+                                color = Color.White,
+                                fontSize = 8.sp,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f),
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Libp2pMeshSyncCard(
+    viewModel: SocximaViewModel,
+    modifier: Modifier = Modifier
+) {
+    val peers by viewModel.libp2pPeers.collectAsState()
+    val isSyncing by viewModel.isSyncingP2P.collectAsState()
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SocximaPanel),
+        border = BorderStroke(1.dp, ColorGemma.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "📡 LIBP2P • RED DE CONEXIÓN",
+                    color = ColorGemma,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = "SIN INTERMEDIARIOS",
+                    color = SocximaTenue,
+                    fontSize = 8.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Comunicación directa entre nodos. Sincronización veloz, segura y libre.",
+                color = SocximaLetra.copy(alpha = 0.85f),
+                fontSize = 11.sp,
+                lineHeight = 15.sp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { viewModel.syncPeerToPeerNodes() },
+                enabled = !isSyncing,
+                colors = ButtonDefaults.buttonColors(containerColor = ColorGemma),
+                shape = RoundedCornerShape(2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp)
+                    .testTag("sync_libp2p_button")
+            ) {
+                if (isSyncing) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("CONECTANDO...", fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                } else {
+                    Text("🔄 SINCRONIZAR RED", fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "NODOS CONECTADOS:",
+                color = SocximaTenue,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                peers.forEach { peer ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(SocximaFondo, RoundedCornerShape(2.dp))
+                            .border(1.dp, SocximaLinea, RoundedCornerShape(2.dp))
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(if (peer.isConnected) ColorMistral else Color.Red)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = peer.nodeId.uppercase(),
+                                    color = if (peer.isConnected) Color.White else SocximaTenue,
+                                    fontSize = 9.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = if (peer.isConnected) "ACTIVO" else "DESCONECTADO",
+                                color = if (peer.isConnected) ColorMistral else Color.Red,
+                                fontSize = 9.sp,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
