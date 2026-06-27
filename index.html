@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOCXIMA · Red Descentralizada</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+    :root {
+      --bg: #04060F;
+      --surface: #0D1120;
+      --border: #1C2640;
+      --green: #7FFF9E;
+      --red: #FF5C72;
+      --blue: #4D96FF;
+      --text: #E8EAF0;
+      --muted: #6B7899;
+      --white: #F4F4EE;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 85px;
+    }
+
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.9rem 0;
+      z-index: 100;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    nav button.active { color: var(--green); transform: scale(1.05); }
+    nav .icon { font-size: 1.5rem; }
+
+    .screen { display: none; padding: 2.5rem 1.5rem; max-width: 500px; margin: 0 auto; }
+    .screen.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    h1 { font-size: 2rem; margin-bottom: 2.5rem; letter-spacing: 1px; font-weight: 700; }
+    h2 { font-size: 1.3rem; margin-bottom: 1.2rem; color: var(--green); font-weight: 600; }
+
+    .status { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+    .status-indicator { display: flex; align-items: center; gap: 0.7rem; font-weight: 500; }
+    .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--red); animation: pulse 2s infinite; }
+    .dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .qr-container {
+      background: var(--white);
+      padding: 1.8rem;
+      border-radius: 12px;
+      width: 280px;
+      height: 280px;
+      margin: 0 auto 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(77, 150, 255, 0.15);
+    }
+    .qr-container img { width: 100%; height: 100%; object-fit: contain; }
+    .qr-label { text-align: center; margin-bottom: 2.2rem; color: var(--muted); font-size: 0.9rem; }
+
+    .link-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
+      word-break: break-all;
+      color: var(--green);
+      font-family: monospace;
+      font-size: 1rem;
+    }
+    .copy-btn { background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; transition: 0.2s; }
+    .copy-btn:hover { color: var(--green); transform: scale(1.1); }
+
+    .toggle-panel {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem;
+      color: var(--muted);
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      padding: 1.4rem;
+      display: none;
+      flex-direction: column;
+      gap: 1.2rem;
+      background: rgba(13, 17, 32, 0.6);
+    }
+    .row { display: flex; justify-content: space-between; font-size: 0.95rem; }
+    .row span:first-child { color: var(--muted); }
+    .sync-row { display: flex; gap: 0.6rem; margin-top: 1rem; }
+    .sync-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; color: var(--text); font-size: 0.95rem; }
+    .sync-btn { background: var(--green); border: none; border-radius: 8px; padding: 0 1.2rem; color: var(--bg); font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .sync-btn:hover { filter: brightness(1.1); }
+
+    .chat-list { display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 2.5rem; }
+    .chat-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .chat-item:hover { border-color: var(--blue); }
+    .chat-info h3 { font-size: 1.05rem; margin-bottom: 0.4rem; font-weight: 600; }
+    .chat-info p { font-size: 0.9rem; color: var(--muted); }
+    .badge { background: var(--red); color: white; font-size: 0.75rem; padding: 0.25rem 0.7rem; border-radius: 1rem; font-weight: bold; }
+    .input-area { display: flex; gap: 0.6rem; }
+    .input-area input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem; color: var(--text); font-size: 0.95rem; }
+    .send-btn { background: var(--blue); border: none; border-radius: 8px; padding: 0 1.4rem; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .send-btn:hover { filter: brightness(1.1); }
+
+    .map-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 300px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .map-grid { width: 100%; height: 100%; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 26px 26px; opacity: 0.6; }
+    .node-marker { position: absolute; width: 15px; height: 15px; border-radius: 50%; background: var(--green); box-shadow: 0 0 15px var(--green); animation: float 3.5s infinite ease-in-out; }
+    @keyframes float { 0%,100% { transform: translate(0,0); } 50% { transform: translate(3px, -3px); } }
+    .toggle-pos { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1.8rem; font-size: 0.95rem; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; text-align: center; }
+    .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--green); margin-top: 0.6rem; }
+
+    .peers-list { display: flex; flex-direction: column; gap: 1.2rem; }
+    .peer-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .peer-item:hover { border-color: var(--blue); }
+    .peer-info h3 { font-size: 1.05rem; margin-bottom: 0.4rem; font-weight: 600; }
+    .peer-info p { font-size: 0.9rem; color: var(--muted); }
+    .peer-stats { text-align: right; }
+    .encryption { color: var(--green); font-size: 0.85rem; margin-top: 0.5rem; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <section class="screen active" id="screen-nodo">
+    <div class="status">
+      <h1>SOCXIMA</h1>
+      <div class="status-indicator">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">FALLBACK</span>
+      </div>
+    </div>
+
+    <div class="qr-container">
+      <img src="IMG-20260627-WA0001.jpg" alt="Código QR SOCXIMA desde Termux" id="qr-img">
+    </div>
+    <p class="qr-label">QR real — generado en Termux</p>
+
+    <div class="link-box">
+      <span id="node-link">socxima://connect?node=SOCXIMA-V3</span>
+      <button class="copy-btn" onclick="copyLink()">⧉</button>
+    </div>
+
+    <button class="toggle-panel" onclick="togglePanel()">
+      Detalles Técnicos <span>▼</span>
+    </button>
+
+    <div class="panel" id="tech-panel">
+      <div class="row"><span>ID Nodo:</span><span id="node-id">SOCXIMA-V3</span></div>
+      <div class="row"><span>Versión:</span><span>3.5.2-LTS-MESH</span></div>
+      <div class="row"><span>Activo desde:</span><span id="since">---</span></div>
+      <div class="sync-row">
+        <input type="text" id="api-url" value="http://127.0.0.1:8080/estado">
+        <button class="sync-btn" onclick="syncNode()">SYNC</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-mensajes">
+    <h1>Mensajes</h1>
+    <div class="chat-list">
+      <div class="chat-item"><div class="chat-info"><h3>Nodo-001</h3><p>Conectado · E2E activo</p></div><span class="badge">2</span></div>
+      <div class="chat-item"><div class="chat-info"><h3>Nodo-045</h3><p>Último: 2 min atrás</p></div></div>
+      <div class="chat-item"><div class="chat-info"><h3>Nodo-012</h3><p>Conectado · Latencia 38ms</p></div></div>
+    </div>
+    <div class="input-area"><input type="text" placeholder="Escribe un mensaje cifrado..."><button class="send-btn">Enviar</button></div>
+  </section>
+
+  <section class="screen" id="screen-ubicacion">
+    <h1>Ubicación Mesh</h1>
+    <div class="map-container">
+      <div class="map-grid"></div>
+      <div class="node-marker" style="top: 50%; left: 50%;"></div>
+      <div class="node-marker" style="top: 30%; left: 25%; transform: scale(0.7);"></div>
+      <div class="node-marker" style="top: 70%; left: 70%; transform: scale(0.7);"></div>
+      <div class="node-marker" style="top: 45%; left: 75%; transform: scale(0.6);"></div>
+    </div>
+    <div class="toggle-pos"><input type="checkbox" id="share-pos"><label for="share-pos">Compartir posición en la red cifrada</label></div>
+    <div class="stats-grid">
+      <div class="stat-box"><span>Radio de alcance</span><div class="stat-value">1.2 km</div></div>
+      <div class="stat-box"><span>Nodos visibles</span><div class="stat-value">4</div></div>
+      <div class="stat-box"><span>Encriptación</span><div class="stat-value">AES-256</div></div>
+      <div class="stat-box"><span>Latencia media</span><div class="stat-value">42 ms</div></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-red">
+    <h1>Red Mesh</h1>
+    <div class="peers-list">
+      <div class="peer-item"><div class="peer-info"><h3>Nodo-001</h3><p>Latencia: 42 ms · Conectado</p><div class="encryption">🔒 E2E AES-256</div></div><div class="peer-stats"><p>Señal: Excelente</p></div></div>
+      <div class="peer-item"><div class="peer-info"><h3>Nodo-045</h3><p>Latencia: 58 ms · Conectado</p><div class="encryption">🔒 E2E AES-256</div></div><div class="peer-stats"><p>Señal: Buena</p></div></div>
+      <div class="peer-item"><div class="peer-info"><h3>Nodo-012</h3><p>Latencia: 35 ms · Conectado</p><div class="encryption">🔒 E2E AES-256</div></div><div class="peer-stats"><p>Señal: Óptima</p></div></div>
+    </div>
+  </section>
+
+  <nav>
+    <button class="active" onclick="showScreen('nodo', this)">
+      <span class="icon">⎔</span>
+      Nodo
+    </button>
+    <button onclick="showScreen('mensajes', this)">
+      <span class="icon">💬</span>
+      Mensajes
+    </button>
+    <button onclick="showScreen('ubicacion', this)">
+      <span class="icon">📍</span>
+      Ubicación
+    </button>
+    <button onclick="showScreen('red', this)">
+      <span class="icon">⎈</span>
+      Red
+    </button>
+  </nav>
+
+  <script>
+    function showScreen(screenId, btn) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(`screen-${screenId}`).classList.add('active');
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function togglePanel() {
+      const panel = document.getElementById('tech-panel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function copyLink() {
+      const link = document.getElementById('node-link').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = '✓';
+        setTimeout(() => btn.textContent = '⧉', 2000);
+      });
+    }
+
+    async function syncNode() {
+      const url = document.getElementById('api-url').value;
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors' });
+        if (!res.ok) throw new Error('Sin respuesta');
+        const data = await res.json();
+        document.getElementById('node-id').textContent = data.id || 'SOCXIMA-V3';
+        document.getElementById('since').textContent = data.activo_desde || '---';
+        document.getElementById('node-link').textContent = data.invitacion_qr || 'socxima://connect?node=SOCXIMA-V3';
+        dot.classList.add('on');
+        dot.style.background = 'var(--green)';
+        text.textContent = 'ONLINE';
+        text.style.color = 'var(--green)';
+      } catch (err) {
+        dot.classList.remove('on');
+        dot.style.background = 'var(--red)';
+        text.textContent = 'FALLBACK';
+        text.style.color = 'var(--red)';
+      }
+    }
+  </script>
+</body>
+</html>
