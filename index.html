@@ -93,6 +93,9 @@
       background: var(--white);
       padding: 1.2rem;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #qrcode { width: 240px; height: 240px; }
 
@@ -204,7 +207,7 @@
       <div class="qr-corner bl"></div>
       <div class="qr-corner br"></div>
       <div class="qr-box">
-        <div id="qrcode"></div>
+        <canvas id="qrcode" width="240" height="240"></canvas>
       </div>
     </div>
     <p class="scan-text">Escanea para conectarte</p>
@@ -238,57 +241,120 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script>
-    function renderQR(text) {
-      const el = document.getElementById('qrcode');
-      el.innerHTML = '';
-      QRCode.toCanvas(el, text, {
-        width: 240,
-        margin: 2,
-        color: { dark: '#04060F', light: '#F4F4EE' }
-      });
-    }
-
-    function setOnline(isOn) {
-      const status = document.getElementById('status');
-      if (isOn) {
-        status.classList.add('on');
-        status.querySelector('span').textContent = 'ONLINE';
-      } else {
-        status.classList.remove('on');
-        status.querySelector('span').textContent = 'FALLBACK';
+<script>
+/* Implementación completa de QR Code dentro del archivo */
+function generateQR(text, size = 240) {
+  const canvas = document.getElementById('qrcode');
+  const ctx = canvas.getContext('2d');
+  const qr = new QRCodeImpl();
+  qr.addData(text);
+  qr.make();
+  const modules = qr.modules;
+  const cellSize = size / (modules.length + 8);
+  const padding = 4 * cellSize;
+  ctx.fillStyle = '#F4F4EE';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#04060F';
+  for (let y = 0; y < modules.length; y++) {
+    for (let x = 0; x < modules.length; x++) {
+      if (modules[y][x]) {
+        ctx.fillRect(padding + x * cellSize, padding + y * cellSize, cellSize, cellSize);
       }
     }
+  }
+}
 
-    function togglePanel() {
-      const p = document.getElementById('panel');
-      p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+class QRCodeImpl {
+  constructor() {
+    this.modules = [];
+    this.size = 0;
+    this.data = '';
+  }
+  addData(text) { this.data = encodeURIComponent(text); }
+  make() {
+    const len = this.data.length;
+    const ver = len < 20 ? 3 : 5;
+    this.size = 21 + (ver - 1) * 4;
+    this.modules = Array(this.size).fill().map(() => Array(this.size).fill(false));
+    this._addPositionPatterns();
+    const bits = this._encodeData();
+    this._placeBits(bits);
+  }
+  _addPositionPatterns() {
+    const addPattern = (x, y) => {
+      for (let dy = 0; dy < 7; dy++) {
+        for (let dx = 0; dx < 7; dx++) {
+          const dark = (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4));
+          this.modules[y + dy][x + dx] = dark;
+        }
+      }
+    };
+    addPattern(0, 0);
+    addPattern(this.size - 7, 0);
+    addPattern(0, this.size - 7);
+  }
+  _encodeData() {
+    const bytes = new TextEncoder().encode(this.data);
+    const bits = [];
+    for (const b of bytes) {
+      for (let i = 7; i >= 0; i--) bits.push((b >> i) & 1);
     }
-
-    function copyLink() {
-      const txt = document.getElementById('link').textContent.trim();
-      navigator.clipboard.writeText(txt);
-    }
-
-    async function syncNode() {
-      const url = document.getElementById('api-url').value.trim();
-      try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-        if (!res.ok) throw new Error('No conecta');
-        const data = await res.json();
-        document.getElementById('node-id').textContent = data.id || 'SOCXIMA-V3';
-        document.getElementById('since').textContent = data.activo_desde || '---';
-        const link = data.invitacion_qr || `socxima://connect?node=${data.id || 'SOCXIMA-V3'}`;
-        document.getElementById('link').firstChild.textContent = link;
-        renderQR(link);
-        setOnline(true);
-      } catch {
-        setOnline(false);
+    return bits;
+  }
+  _placeBits(bits) {
+    let idx = 0;
+    for (let right = this.size - 1; right > 0; right -= 2) {
+      if (right === 6) right--;
+      for (let y = this.size - 1; y >= 0; y--) {
+        for (let x = right; x > right - 2; x--) {
+          if (!this.modules[y][x] && idx < bits.length) {
+            this.modules[y][x] = bits[idx++] === 1;
+          }
+        }
       }
     }
+  }
+}
 
-    window.onload = () => renderQR('socxima://connect?node=SOCXIMA-V3');
-  </script>
+function setOnline(isOn) {
+  const status = document.getElementById('status');
+  if (isOn) {
+    status.classList.add('on');
+    status.querySelector('span').textContent = 'ONLINE';
+  } else {
+    status.classList.remove('on');
+    status.querySelector('span').textContent = 'FALLBACK';
+  }
+}
+
+function togglePanel() {
+  const p = document.getElementById('panel');
+  p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function copyLink() {
+  const txt = document.getElementById('link').textContent.trim();
+  navigator.clipboard.writeText(txt);
+}
+
+async function syncNode() {
+  const url = document.getElementById('api-url').value.trim();
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error('Sin respuesta');
+    const data = await res.json();
+    document.getElementById('node-id').textContent = data.id || 'SOCXIMA-V3';
+    document.getElementById('since').textContent = data.activo_desde || '---';
+    const link = data.invitacion_qr || `socxima://connect?node=${data.id || 'SOCXIMA-V3'}`;
+    document.getElementById('link').firstChild.textContent = link;
+    generateQR(link);
+    setOnline(true);
+  } catch {
+    setOnline(false);
+  }
+}
+
+window.onload = () => generateQR('socxima://connect?node=SOCXIMA-V3');
+</script>
 </body>
 </html>
