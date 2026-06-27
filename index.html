@@ -5,270 +5,246 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SOCXIMA · Nodo Activo</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Permissions-Policy" content="geolocation=(), camera=(), microphone=()">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: monospace; }
     :root {
-      --bg:       #04060F;
-      --surface:  #0D1120;
-      --border:   #1C2640;
-      --green:    #7FFF9E;
-      --text:     #E8EAF0;
-      --muted:    #3E4F6E;
-      --white:    #F4F4EE;
-      --danger:   #FF5C72;
+      --fondo: #04060F;
+      --caja: #0D1120;
+      --borde: #1C2640;
+      --verde: #7FFF9E;
+      --rojo: #FF5C72;
+      --texto: #E8EAF0;
+      --gris: #3E4F6E;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
+      background: var(--fondo);
+      color: var(--texto);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1.25rem;
+      padding: 2rem 1rem;
     }
-
-    body::before {
-      content: '';
+    .malla {
       position: fixed;
       inset: 0;
-      background-image: radial-gradient(circle, #1C2640 1px, transparent 1px);
-      background-size: 36px 36px;
-      opacity: 0.45;
-      pointer-events: none;
+      background-image: radial-gradient(var(--borde) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.4;
+      z-index: 0;
     }
-
-    .page {
-      position: relative;
-      z-index: 1;
+    .contenedor {
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
+      z-index: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 0;
+      gap: 2rem;
     }
-
-    .topbar {
-      width: 100%;
+    .cabecera {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 2.5rem;
+      align-items: center;
     }
-
-    .wordmark {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 1.35rem;
-      letter-spacing: 0.12em;
-      color: var(--white);
+    .titulo {
+      font-size: 1.4rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: white;
     }
-
-    .live-badge {
+    .estado {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
-      font-size: 0.62rem;
-      letter-spacing: 0.15em;
-      color: var(--green);
-      transition: color 0.4s;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--rojo);
     }
-    .live-badge.offline { color: var(--danger); }
-
-    .live-dot {
-      width: 7px;
-      height: 7px;
+    .estado.online {
+      color: var(--verde);
+    }
+    .punto {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: currentColor;
-      animation: pulse-dot 2s ease-in-out infinite;
+      animation: parpadeo 2s infinite;
     }
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.3; transform: scale(0.7); }
+    @keyframes parpadeo {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
-
-    .qr-hero {
-      position: relative;
-      margin-bottom: 2rem;
-    }
-
-    .corner {
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      z-index: 2;
-    }
-    .corner::before, .corner::after {
-      content: '';
-      position: absolute;
-      background: var(--green);
-      transition: background 0.4s;
-    }
-    .corner::before { width: 100%; height: 2px; }
-    .corner::after  { width: 2px; height: 100%; }
-
-    .corner.tl { top: -6px;  left: -6px;  }
-    .corner.tr { top: -6px;  right: -6px; }
-    .corner.bl { bottom: -6px; left: -6px; }
-    .corner.br { bottom: -6px; right: -6px; }
-
-    .corner.tr::before { right: 0; }
-    .corner.tr::after  { right: 0; }
-    .corner.bl::before { bottom: 0; }
-    .corner.bl::after  { bottom: 0; }
-    .corner.br::before { right: 0; bottom: 0; }
-    .corner.br::after  { right: 0; bottom: 0; }
-
-    .corner::before, .corner::after {
-      animation: corner-draw 0.6s cubic-bezier(0.4,0,0.2,1) both;
-    }
-    .corner.tl::before { transform-origin: left;   animation-delay: 0.1s; }
-    .corner.tl::after  { transform-origin: top;    animation-delay: 0.2s; }
-    .corner.tr::before { transform-origin: right;  animation-delay: 0.25s; }
-    .corner.tr::after  { transform-origin: top;    animation-delay: 0.35s; }
-    .corner.bl::before { transform-origin: left;   animation-delay: 0.4s; }
-    .corner.bl::after  { transform-origin: bottom; animation-delay: 0.5s; }
-    .corner.br::before { transform-origin: right;  animation-delay: 0.55s; }
-    .corner.br::after  { transform-origin: bottom; animation-delay: 0.65s; }
-
-    @keyframes corner-draw {
-      from { transform: scaleX(0); opacity: 0; }
-      to   { transform: scaleX(1); opacity: 1; }
-    }
-    .corner::after {
-      animation-name: corner-draw-v;
-    }
-    @keyframes corner-draw-v {
-      from { transform: scaleY(0); opacity: 0; }
-      to   { transform: scaleY(1); opacity: 1; }
-    }
-
-    .qr-box {
-      background: var(--white);
+    .marco-qr {
+      background: white;
+      padding: 1rem;
       border-radius: 4px;
-      padding: 1.25rem;
+      margin: 0 auto;
+    }
+    #qr {
+      width: 220px;
+      height: 220px;
       display: block;
     }
-
-    .offline-corners .corner::before,
-    .offline-corners .corner::after {
-      background: var(--danger);
-    }
-
-    .scan-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.18em;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 2rem;
-      text-transform: uppercase;
-    }
-
-    .conn-wrap {
-      position: relative;
+    .enlace {
       width: 100%;
-      margin-bottom: 2.5rem;
-    }
-
-    .conn-string {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--caja);
+      border: 1px solid var(--borde);
       border-radius: 8px;
-      padding: 0.9rem 3.5rem 0.9rem 1rem;
-      font-size: 0.65rem;
-      color: var(--green);
+      padding: 1rem;
+      color: var(--verde);
       word-break: break-all;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      line-height: 1.6;
+      position: relative;
     }
-    .conn-string:hover { border-color: var(--green); }
-
-    .copy-btn {
+    .copiar {
       position: absolute;
-      right: 0.75rem;
+      right: 0.8rem;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
+      color: var(--gris);
+      font-size: 1.2rem;
       cursor: pointer;
-      color: var(--muted);
-      font-size: 1rem;
-      transition: color 0.2s;
-      padding: 0.25rem;
     }
-    .copy-btn:hover { color: var(--green); }
-
-    .copy-toast {
-      position: absolute;
-      bottom: -1.4rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.6rem;
-      letter-spacing: 0.12em;
-      color: var(--green);
-      opacity: 0;
-      transition: opacity 0.25s;
-      white-space: nowrap;
-    }
-    .copy-toast.show { opacity: 1; }
-
-    .tech-toggle {
+    .boton-detalles {
       width: 100%;
       background: none;
-      border: 1px solid var(--border);
+      border: 1px solid var(--borde);
       border-radius: 8px;
-      padding: 0.85rem 1rem;
-      color: var(--muted);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      cursor: pointer;
+      padding: 1rem;
+      color: var(--gris);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      transition: border-color 0.2s, color 0.2s;
-      text-transform: uppercase;
-      margin-bottom: 0;
+      align-items: center;
+      cursor: pointer;
     }
-    .tech-toggle:hover { border-color: var(--green); color: var(--text); }
-
-    .toggle-arrow {
-      transition: transform 0.3s;
-    }
-    .tech-toggle.open .toggle-arrow { transform: rotate(180deg); }
-
-    .tech-panel {
-      width: 100%;
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1);
-    }
-    .tech-panel.open { max-height: 400px; }
-
-    .tech-inner {
-      border: 1px solid var(--border);
+    .panel-detalles {
+      border: 1px solid var(--borde);
       border-top: none;
       border-radius: 0 0 8px 8px;
-      padding: 1.25rem 1rem;
-      display: flex;
+      padding: 1rem;
+      display: none;
       flex-direction: column;
       gap: 1rem;
     }
+    .fila {
+      display: flex;
+      justify-content: space-between;
+    }
+    input {
+      width: 100%;
+      background: var(--fondo);
+      border: 1px solid var(--borde);
+      border-radius: 6px;
+      padding: 0.7rem;
+      color: var(--texto);
+    }
+    .boton-sinc {
+      background: var(--verde);
+      border: none;
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      color: var(--fondo);
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="malla"></div>
+  <div class="contenedor">
+    <div class="cabecera">
+      <div class="titulo">SOCXIMA</div>
+      <div class="estado" id="estado">
+        <div class="punto"></div>
+        <span>FALLBACK</span>
+      </div>
+    </div>
 
-    .meta-row {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.4rem 1rem;
-      align-items: basel
-    
+    <div class="marco-qr">
+      <canvas id="qr" width="220" height="220"></canvas>
+    </div>
+
+    <div class="enlace" id="enlace">
+      socxima://connect?node=SOCXIMA-V3
+      <button class="copiar" onclick="copiarEnlace()">⧉</button>
+    </div>
+
+    <button class="boton-detalles" onclick="mostrarDetalles()">
+      Detalles del nodo <span>▼</span>
+    </button>
+
+    <div class="panel-detalles" id="panel">
+      <div class="fila"><span>ID:</span><span id="id-nodo">---</span></div>
+      <div class="fila"><span>Activo desde:</span><span id="fecha">---</span></div>
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <input type="text" id="ruta" value="http://127.0.0.1:8080/estado">
+        <button class="boton-sinc" onclick="sincronizar()">SYNC</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function dibujarQR(texto) {
+      const canvas = document.getElementById('qr');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 220, 220);
+      ctx.fillStyle = '#04060F';
+      let x = 10, y = 10;
+      for (const caracter of texto) {
+        const codigo = caracter.charCodeAt(0);
+        for (let bit = 0; bit < 8; bit++) {
+          if (codigo & (1 << bit)) {
+            ctx.fillRect(x, y, 4, 4);
+          }
+          x += 4;
+          if (x > 210) {
+            x = 10;
+            y += 4;
+          }
+        }
+      }
+    }
+
+    function cambiarEstado(activo) {
+      const estado = document.getElementById('estado');
+      if (activo) {
+        estado.classList.add('online');
+        estado.querySelector('span').textContent = 'ONLINE';
+      } else {
+        estado.classList.remove('online');
+        estado.querySelector('span').textContent = 'FALLBACK';
+      }
+    }
+
+    function mostrarDetalles() {
+      const panel = document.getElementById('panel');
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function copiarEnlace() {
+      const texto = document.getElementById('enlace').textContent.trim();
+      navigator.clipboard.writeText(texto);
+    }
+
+    async function sincronizar() {
+      const url = document.getElementById('ruta').value.trim();
+      try {
+        const respuesta = await fetch(url, { signal: AbortSignal.timeout(4000) });
+        if (!respuesta.ok) throw new Error('Sin respuesta');
+        const datos = await respuesta.json();
+        document.getElementById('id-nodo').textContent = datos.id;
+        document.getElementById('fecha').textContent = datos.activo_desde;
+        document.getElementById('enlace').firstChild.textContent = datos.invitacion_qr;
+        dibujarQR(datos.invitacion_qr);
+        cambiarEstado(true);
+      } catch {
+        cambiarEstado(false);
+      }
+    }
+
+    window.onload = () => dibujarQR('socxima://connect?node=SOCXIMA-V3');
+  </script>
+</body>
+</html>
