@@ -97,7 +97,7 @@
       align-items: center;
       justify-content: center;
     }
-    #qrcode { width: 240px; height: 240px; image-rendering: pixelated; }
+    #qrcode { width: 240px; height: 240px; }
 
     .scan-text {
       text-align: center;
@@ -241,65 +241,20 @@
     </div>
   </div>
 
+<!-- Librería oficial estándar QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
 <script>
-// Generador QR completo, correcto y simétrico
-class QRCode {
-  constructor(text, size = 240) {
-    this.text = text;
-    this.size = size;
-    this.level = 'M';
-    this.canvas = document.getElementById('qrcode');
-    this.ctx = this.canvas.getContext('2d');
-  }
-
-  encode() {
-    const data = this.text;
-    const version = 2;
-    const modules = Array(25).fill().map(() => Array(25).fill(false));
-
-    // Marcadores de posición
-    const drawFinder = (x, y) => {
-      for (let dy = 0; dy < 7; dy++) {
-        for (let dx = 0; dx < 7; dx++) {
-          const dark = dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4);
-          modules[y + dy][x + dx] = dark;
-        }
-      }
-    };
-    drawFinder(0, 0);
-    drawFinder(18, 0);
-    drawFinder(0, 18);
-
-    // Relleno con datos
-    const bytes = new TextEncoder().encode(data);
-    let pos = 0;
-    for (let y = 0; y < 25; y++) {
-      for (let x = 0; x < 25; x++) {
-        if (!modules[y][x] && pos < bytes.length * 8) {
-          const bit = (bytes[Math.floor(pos / 8)] >> (7 - (pos % 8))) & 1;
-          modules[y][x] = bit === 1;
-          pos++;
-        }
-      }
+function renderQR(text) {
+  QRCode.toCanvas(document.getElementById('qrcode'), text, {
+    width: 240,
+    margin: 2,
+    errorCorrectionLevel: 'M',
+    color: {
+      dark: '#04060F',
+      light: '#F4F4EE'
     }
-
-    // Dibujar
-    const cell = this.size / 25;
-    this.ctx.fillStyle = '#F4F4EE';
-    this.ctx.fillRect(0, 0, this.size, this.size);
-    this.ctx.fillStyle = '#04060F';
-    for (let y = 0; y < 25; y++) {
-      for (let x = 0; x < 25; x++) {
-        if (modules[y][x]) {
-          this.ctx.fillRect(x * cell, y * cell, cell, cell);
-        }
-      }
-    }
-  }
-}
-
-function generateQR(text) {
-  new QRCode(text).encode();
+  });
 }
 
 function setOnline(isOn) {
@@ -326,21 +281,28 @@ function copyLink() {
 async function syncNode() {
   const url = document.getElementById('api-url').value.trim();
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    // Solución para CORS: si falla por restricción del navegador, sigue en modo local
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+      mode: 'cors',
+      credentials: 'omit'
+    });
     if (!res.ok) throw new Error('Sin respuesta');
     const data = await res.json();
     document.getElementById('node-id').textContent = data.id || 'SOCXIMA-V3';
     document.getElementById('since').textContent = data.activo_desde || '---';
     const link = data.invitacion_qr || `socxima://connect?node=${data.id || 'SOCXIMA-V3'}`;
     document.getElementById('link').firstChild.textContent = link;
-    generateQR(link);
+    renderQR(link);
     setOnline(true);
-  } catch {
+  } catch (err) {
+    console.log('Modo local activado:', err.message);
+    renderQR('socxima://connect?node=SOCXIMA-V3');
     setOnline(false);
   }
 }
 
-window.onload = () => generateQR('socxima://connect?node=SOCXIMA-V3');
+window.onload = () => renderQR('socxima://connect?node=SOCXIMA-V3');
 </script>
 </body>
 </html>
