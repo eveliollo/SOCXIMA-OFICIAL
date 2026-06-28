@@ -1,0 +1,33 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+
+class NodoSOCXIMA(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        # Esto permite que el navegador haga la pregunta previa al botón SYNC
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+    def do_GET(self):
+        if self.path == '/estado':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*') # 👈 CLAVE: Permite la conexión
+            self.end_headers()
+            
+            # Datos que tu web espera recibir
+            datos = {
+                "id": "SOCXIMA-V3", 
+                "version": "3.5.2-LTS-MESH", 
+                "estado": "online"
+            }
+            self.wfile.write(json.dumps(datos).encode('utf-8'))
+        else:
+            self.send_error(404)
+
+# Inicia el servidor escuchando en todas las interfaces
+server = HTTPServer(("", 8080), NodoSOCXIMA)
+print("✅ Servidor activo en puerto 8080...")
+server.serve_forever()
