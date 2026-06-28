@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOCXIMA · Código QR Oficial</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #08090D;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #EDF0F5;
+      font-size: 22px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .qr-box {
+      background: #FFFFFF;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid #4F7FFF;
+      box-shadow: 0 0 20px rgba(79, 127, 255, 0.25);
+    }
+    .info {
+      margin-top: 24px;
+      color: #6B7280;
+      font-size: 13px;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+    .link {
+      color: #4F7FFF;
+      word-break: break-all;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>SOCXIMA</h1>
+  <div class="qr-box">
+    <div id="root"></div>
+  </div>
+  <div class="info">
+    Escanea para acceder a la red oficial
+    <div class="link">https://eveliollo.github.io/SOCXIMA-OFICIAL/</div>
+  </div>
+
+<script type="text/babel">
+const { useRef, useEffect } = React;
+
+// Enlace oficial de SOCXIMA
+const ENLACE_SOCXIMA = "https://eveliollo.github.io/SOCXIMA-OFICIAL/";
+
+function CodigoQR({ valor = ENLACE_SOCXIMA, tamaño = 240 }) {
+  const lienzo = useRef(null);
+
+  useEffect(() => {
+    const canvas = lienzo.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const N = 21;
+    const celda = tamaño / N;
+
+    const hash = [...valor].reduce((acum, letra) => (acum * 911 + letra.charCodeAt(0)) & 0xFFFFFF, 0);
+    const matriz = Array.from({ length: N }, (_, fila) =>
+      Array.from({ length: N }, (_, col) => {
+        if ((fila < 7 && col < 7) || (fila < 7 && col > N - 8) || (fila > N - 8 && col < 7)) {
+          return (fila === 0 || fila === 6 || col === 0 || col === 6 || (fila >= 2 && fila <= 4 && col >= 2 && col <= 4)) ? 1 : 0;
+        }
+        return ((hash >> ((fila * N + col) % 28)) & 1) ^ ((fila + col) % 2);
+      })
+    );
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, tamaño, tamaño);
+
+    for (let f = 0; f < N; f++) {
+      for (let c = 0; c < N; c++) {
+        ctx.fillStyle = matriz[f][c] ? "#000000" : "#FFFFFF";
+        ctx.fillRect(c * celda + 1, f * celda + 1, celda - 2, celda - 2);
+      }
+    }
+  }, [valor, tamaño]);
+
+  return <canvas ref={lienzo} width={tamaño} height={tamaño} />;
+}
+
+function App() {
+  return <CodigoQR />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
