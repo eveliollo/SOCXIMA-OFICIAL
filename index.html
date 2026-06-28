@@ -1,0 +1,19 @@
+cd ~/SOCXIMA-OFICIAL && cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOCXIMA</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>*{margin:0;padding:0;box-sizing:border-box}body{background:#08090D;font-family:'IBM Plex Mono',monospace;color:#EDF0F5;display:flex;justify-content:center;min-height:100vh;padding:20px}#root{width:100%;max-width:420px}.pantalla{background:#08090D;border-radius:16px;padding:24px;text-align:center}h1{font-size:32px;color:#4F7FFF;margin-bottom:30px;letter-spacing:.1em}.qr-contenedor{background:#FFF;padding:18px;border-radius:12px;border:2px solid #4F7FFF;box-shadow:0 0 25px rgba(79,127,255,.3);display:inline-block;margin-bottom:25px}.info{color:#949BA8;font-size:16px;line-height:1.8}.enlace{color:#4F7FFF;margin-top:12px;font-size:14px;word-break:break-all}</style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">const{useEffect,useRef}=React;const ENLACE_SOCXIMA="https://eveliollo.github.io/SOCXIMA-OFICIAL/";function CodigoQR({valor=ENLACE_SOCXIMA,tamaño=260}){const canvasRef=useRef(null);useEffect(()=>{if(!canvasRef.current)return;QRCode.toCanvas(canvasRef.current,valor,{width:tamaño,margin:2,color:{dark:"#000",light:"#FFF"},errorCorrectionLevel:"M"})},[valor,tamaño]);return<canvas ref={canvasRef}/>}function App(){return<div className="pantalla"><h1>SOCXIMA</h1><div className="qr-contenedor"><CodigoQR/></div><div className="info">Red descentralizada independiente<br/>Escanea para acceder<div className="enlace">{ENLACE_SOCXIMA}</div></div></div>}const root=ReactDOM.createRoot(document.getElementById('root'));root.render(<App/>);</script>
+</body>
+</html>
+EOF && tmux kill-session -t socxima 2>/dev/null; tmux new-session -d -s socxima 'npx serve . -l 3000'
