@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>SOCXIMA · Red Descentralizada</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -30,11 +26,10 @@
       height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: Arial, sans-serif;
       overflow: hidden;
     }
 
-    /* ── APP SHELL ── */
     .app {
       height: 100dvh;
       display: flex;
@@ -44,7 +39,6 @@
       position: relative;
     }
 
-    /* ── TOPBAR ── */
     .topbar {
       flex-shrink: 0;
       display: flex;
@@ -56,7 +50,6 @@
     }
 
     .wordmark {
-      font-family: 'Syne', sans-serif;
       font-weight: 800;
       font-size: 1.2rem;
       letter-spacing: 0.14em;
@@ -86,7 +79,6 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-    /* ── SCROLL AREA ── */
     .scroll {
       flex: 1;
       overflow-y: auto;
@@ -96,13 +88,9 @@
     }
     .scroll::-webkit-scrollbar { display: none; }
 
-    /* ── SCREENS ── */
     .screen { display: none; flex-direction: column; min-height: 100%; }
     .screen.active { display: flex; }
 
-    /* ═══════════════════════════════
-       PANTALLA 1 — NODO / QR
-    ════════════════════════════════ */
     .s-nodo {
       padding: 1.5rem 1.25rem 2rem;
       align-items: center;
@@ -110,7 +98,6 @@
     }
 
     .nodo-title {
-      font-family: 'Syne', sans-serif;
       font-weight: 700;
       font-size: 0.75rem;
       letter-spacing: 0.22em;
@@ -120,7 +107,6 @@
       align-self: flex-start;
     }
 
-    /* QR hero con esquinas animadas */
     .qr-hero {
       position: relative;
       margin-bottom: 1.25rem;
@@ -157,29 +143,14 @@
       background: #F4F4EE;
       border-radius: 6px;
       padding: 1rem;
-    }
-
-    /* Imagen del QR real de Termux */
-    .qr-real-wrap {
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    .qr-real-label {
-      font-size: 0.58rem;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 0.65rem;
-    }
-    .qr-real-img {
       width: 200px;
       height: 200px;
-      object-fit: cover;
-      object-position: center top;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      display: block;
-      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #222;
+      text-align: center;
     }
 
     .scan-hint {
@@ -203,9 +174,9 @@
       margin-bottom: 0.5rem;
       transition: border-color 0.2s;
       line-height: 1.5;
-      position: relative;
     }
     .conn-pill:hover { border-color: var(--green); }
+
     .copy-flash {
       font-size: 0.55rem;
       color: var(--green);
@@ -218,7 +189,6 @@
     }
     .copy-flash.show { opacity: 1; }
 
-    /* Panel técnico colapsable */
     .tech-toggle {
       width: 100%;
       background: none;
@@ -226,7 +196,6 @@
       border-radius: 8px;
       padding: 0.75rem 1rem;
       color: var(--muted);
-      font-family: 'IBM Plex Mono', monospace;
       font-size: 0.62rem;
       letter-spacing: 0.12em;
       cursor: pointer;
@@ -270,7 +239,6 @@
       border-radius: 6px;
       padding: 0.6rem 0.8rem;
       color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
       font-size: 0.62rem;
       outline: none;
     }
@@ -281,303 +249,12 @@
       border-radius: 6px;
       padding: 0.6rem 0.9rem;
       color: var(--green);
-      font-family: 'IBM Plex Mono', monospace;
       font-size: 0.6rem;
       cursor: pointer;
       letter-spacing: 0.08em;
     }
     .srv-btn:hover { background: rgba(127,255,158,0.07); }
 
-    /* ═══════════════════════════════
-       PANTALLA 2 — MENSAJES
-    ════════════════════════════════ */
-    .s-msg { padding: 0; flex-direction: column; }
-
-    .msg-list {
-      flex: 1;
-      padding: 1rem 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    .msg-section-label {
-      font-size: 0.55rem;
-      color: var(--muted);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      padding: 0.5rem 0 0.25rem;
-    }
-
-    .msg-item {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      padding: 0.85rem 1rem;
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .msg-item:hover { border-color: var(--blue); }
-
-    .msg-avatar {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--s2);
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-      position: relative;
-    }
-    .msg-unread-dot {
-      position: absolute;
-      top: 1px; right: 1px;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      border: 1.5px solid var(--bg);
-    }
-
-    .msg-info { flex: 1; min-width: 0; }
-    .msg-name { font-size: 0.75rem; font-weight: 500; color: var(--text); margin-bottom: 0.2rem; }
-    .msg-preview {
-      font-size: 0.62rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .msg-meta { font-size: 0.55rem; color: var(--muted); text-align: right; flex-shrink: 0; }
-
-    .msg-input-bar {
-      flex-shrink: 0;
-      padding: 0.85rem 1.25rem;
-      border-top: 1px solid var(--border);
-      background: var(--bg);
-      display: flex;
-      gap: 0.6rem;
-    }
-    .msg-input {
-      flex: 1;
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.7rem 1rem;
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.68rem;
-      outline: none;
-    }
-    .msg-input::placeholder { color: var(--muted); }
-    .msg-input:focus { border-color: var(--blue); }
-    .msg-send {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--blue);
-      border: none;
-      color: #000;
-      font-size: 1rem;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* ═══════════════════════════════
-       PANTALLA 3 — UBICACIÓN
-    ════════════════════════════════ */
-    .s-ubi { padding: 1.25rem; gap: 1rem; }
-
-    .map-placeholder {
-      width: 100%;
-      aspect-ratio: 1 / 0.85;
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Grid de mapa falso */
-    .map-placeholder::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 32px 32px;
-      opacity: 0.5;
-    }
-
-    /* Nodos en el mapa */
-    .map-dot {
-      position: absolute;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 12px var(--green);
-      z-index: 2;
-    }
-    .map-dot::after {
-      content: '';
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      border: 1px solid var(--green);
-      opacity: 0.4;
-      animation: ring-out 2s ease-out infinite;
-    }
-    @keyframes ring-out {
-      0%   { transform: scale(0.5); opacity: 0.5; }
-      100% { transform: scale(2); opacity: 0; }
-    }
-
-    .map-dot-you  { top: 52%; left: 48%; background: var(--blue); box-shadow: 0 0 12px var(--blue); }
-    .map-dot-you::after { border-color: var(--blue); }
-    .map-dot-a { top: 28%; left: 30%; animation-delay: 0.5s; }
-    .map-dot-b { top: 65%; left: 70%; animation-delay: 1s; }
-    .map-dot-c { top: 20%; left: 70%; animation-delay: 1.5s; }
-
-    /* Líneas entre nodos */
-    .map-line {
-      position: absolute;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(127,255,158,0.3), transparent);
-      z-index: 1;
-    }
-
-    .map-label {
-      position: absolute;
-      bottom: 0.6rem;
-      left: 0.75rem;
-      font-size: 0.55rem;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-    }
-
-    .ubi-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-
-    .ubi-card {
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.9rem 1rem;
-    }
-    .ubi-card-label { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 0.35rem; }
-    .ubi-card-val   { font-size: 0.78rem; color: var(--text); }
-    .ubi-card-val.green { color: var(--green); }
-
-    .ubi-toggle {
-      width: 100%;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      color: var(--dimmed);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .ubi-toggle:hover { border-color: var(--green); color: var(--green); }
-    .toggle-switch {
-      width: 32px; height: 18px;
-      border-radius: 100px;
-      background: var(--border);
-      position: relative;
-      transition: background 0.25s;
-      flex-shrink: 0;
-    }
-    .toggle-switch.on { background: var(--green); }
-    .toggle-knob {
-      position: absolute;
-      top: 2px; left: 2px;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: #000;
-      transition: transform 0.25s;
-    }
-    .toggle-switch.on .toggle-knob { transform: translateX(14px); }
-
-    /* ═══════════════════════════════
-       PANTALLA 4 — RED
-    ════════════════════════════════ */
-    .s-red { padding: 1.25rem; gap: 1rem; }
-
-    .red-stat-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-    }
-
-    .stat-box {
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.9rem 0.75rem;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--green);
-      line-height: 1;
-      margin-bottom: 0.3rem;
-    }
-    .stat-lbl { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; }
-
-    .peer-list { display: flex; flex-direction: column; gap: 0.6rem; }
-    .peer-label { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.15rem; }
-
-    .peer-item {
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-    }
-
-    .peer-sig {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .sig-strong { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .sig-med    { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-    .sig-weak   { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
-
-    .peer-id   { flex: 1; font-size: 0.68rem; color: var(--text); }
-    .peer-meta { font-size: 0.58rem; color: var(--muted); text-align: right; line-height: 1.5; }
-
-    .encrypt-badge {
-      display: inline-block;
-      font-size: 0.52rem;
-      letter-spacing: 0.08em;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      border: 1px solid rgba(127,255,158,0.3);
-      color: var(--green);
-      margin-top: 0.25rem;
-    }
-
-    /* ── NAVBAR ── */
     .navbar {
       flex-shrink: 0;
       display: flex;
@@ -597,7 +274,6 @@
       border: none;
       background: none;
       color: var(--muted);
-      font-family: 'IBM Plex Mono', monospace;
       font-size: 0.52rem;
       letter-spacing: 0.08em;
       gap: 0.3rem;
@@ -623,41 +299,29 @@
 <body>
 <div class="app">
 
-  <!-- TOPBAR -->
   <div class="topbar">
     <span class="wordmark">SOCXIMA</span>
-    <div class="node-badge" id="node-badge">
+    <div class="node-badge offline" id="node-badge">
       <span class="ndot"></span>
       <span id="node-status">FALLBACK</span>
     </div>
   </div>
 
-  <!-- SCROLL -->
   <div class="scroll" id="scroll">
-
-    <!-- ── NODO ── -->
     <div class="screen s-nodo active" id="screen-nodo">
-      <span class="nodo-title">Tu nodo activo</span>
+      <span class="nodo-title">TU NODO ACTIVO</span>
 
-      <!-- QR generado dinámicamente -->
       <div class="qr-hero offline-frame" id="qr-hero">
         <div class="corner tl"></div>
         <div class="corner tr"></div>
         <div class="corner bl"></div>
         <div class="corner br"></div>
-        <div class="qr-box">
-          <canvas id="qr-canvas"></canvas>
+        <div class="qr-box" id="qr-box">
+          Conecta primero<br>para ver QR
         </div>
       </div>
 
       <p class="scan-hint">Escanea para unirte a este nodo</p>
-
-      <!-- Imagen real del QR de Termux -->
-      <div class="qr-real-wrap">
-        <p class="qr-real-label">QR real — generado en Termux</p>
-        <img src="24863.jpg" alt="QR generado en Termux" class="qr-real-img"
-             onerror="this.parentElement.style.display='none'">
-      </div>
 
       <div class="conn-pill" id="conn-pill" onclick="copiarConn()">
         socxima://connect?node=SOCXIMA-V3-ALPHA-88
@@ -665,7 +329,7 @@
       <div class="copy-flash" id="copy-flash">✓ COPIADO</div>
 
       <button class="tech-toggle" id="tech-btn" onclick="toggleTech()">
-        <span>Detalles del nodo</span>
+        <span>DETALLES DEL NODO</span>
         <span class="tech-arrow">▾</span>
       </button>
       <div class="tech-body" id="tech-body">
@@ -676,186 +340,14 @@
             <span class="mk">Activo desde</span><span class="mv" id="actividad">—</span>
           </div>
           <div class="srv-row">
-            <input type="text" class="srv-input" id="url-api" value="http://127.0.0.1:8080/estado" spellcheck="false">
+            <input type="text" class="srv-input" id="url-api" value="http://192.168.1.3:8080/estado" spellcheck="false">
             <button class="srv-btn" onclick="sincronizar()">SYNC</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ── MENSAJES ── -->
-    <div class="screen s-msg" id="screen-msg">
-      <div class="msg-list">
-        <span class="msg-section-label">Mensajes recientes</span>
-
-        <div class="msg-item">
-          <div class="msg-avatar">🔹<div class="msg-unread-dot"></div></div>
-          <div class="msg-info">
-            <div class="msg-name">Nodo-A3F2</div>
-            <div class="msg-preview">Señal estable. Latencia 12ms.</div>
-          </div>
-          <div class="msg-meta">14:38<br><span style="color:var(--green)">●</span></div>
-        </div>
-
-        <div class="msg-item">
-          <div class="msg-avatar">🔸</div>
-          <div class="msg-info">
-            <div class="msg-name">Nodo-CC90</div>
-            <div class="msg-preview">¿Confirmás recepción del paquete?</div>
-          </div>
-          <div class="msg-meta">13:11</div>
-        </div>
-
-        <div class="msg-item">
-          <div class="msg-avatar">🔷<div class="msg-unread-dot"></div></div>
-          <div class="msg-info">
-            <div class="msg-name">Broadcast · Red</div>
-            <div class="msg-preview">Nuevo nodo detectado en zona sur.</div>
-          </div>
-          <div class="msg-meta">12:05<br><span style="color:var(--green)">●</span></div>
-        </div>
-
-        <div class="msg-item">
-          <div class="msg-avatar">⬡</div>
-          <div class="msg-info">
-            <div class="msg-name">Nodo-77B1</div>
-            <div class="msg-preview">Ruta alternativa disponible.</div>
-          </div>
-          <div class="msg-meta">Ayer</div>
-        </div>
-
-        <span class="msg-section-label" style="margin-top:0.5rem">Canal broadcast</span>
-
-        <div class="msg-item">
-          <div class="msg-avatar" style="background:rgba(77,170,255,0.1);border-color:rgba(77,170,255,0.3);color:var(--blue)">📡</div>
-          <div class="msg-info">
-            <div class="msg-name" style="color:var(--blue)">SOCXIMA · Red</div>
-            <div class="msg-preview">3 nodos activos en este momento.</div>
-          </div>
-          <div class="msg-meta">Ahora</div>
-        </div>
-      </div>
-
-      <div class="msg-input-bar">
-        <input class="msg-input" type="text" placeholder="Mensaje al nodo o broadcast…">
-        <button class="msg-send">➤</button>
-      </div>
-    </div>
-
-    <!-- ── UBICACIÓN ── -->
-    <div class="screen s-ubi" id="screen-ubi">
-
-      <div class="map-placeholder">
-        <div class="map-dot map-dot-a"></div>
-        <div class="map-dot map-dot-b"></div>
-        <div class="map-dot map-dot-c"></div>
-        <div class="map-dot map-dot-you"></div>
-        <div class="map-label">RED SOCXIMA · VISTA MESH</div>
-      </div>
-
-      <div class="ubi-cards">
-        <div class="ubi-card">
-          <div class="ubi-card-label">NODOS VISIBLES</div>
-          <div class="ubi-card-val green">3</div>
-        </div>
-        <div class="ubi-card">
-          <div class="ubi-card-label">RADIO ESTIMADO</div>
-          <div class="ubi-card-val">~800 m</div>
-        </div>
-        <div class="ubi-card">
-          <div class="ubi-card-label">TU POSICIÓN</div>
-          <div class="ubi-card-val" style="font-size:0.62rem">—</div>
-        </div>
-        <div class="ubi-card">
-          <div class="ubi-card-label">ÚLTIMA SYNC</div>
-          <div class="ubi-card-val" style="font-size:0.68rem" id="last-sync">—</div>
-        </div>
-      </div>
-
-      <button class="ubi-toggle" onclick="toggleUbi(this)">
-        <span>Compartir mi ubicación</span>
-        <div class="toggle-switch" id="ubi-sw">
-          <div class="toggle-knob"></div>
-        </div>
-      </button>
-
-      <button class="ubi-toggle" onclick="toggleUbi2(this)" style="border-color:rgba(77,170,255,0.2);color:var(--blue)">
-        <span>Ver nodos en mapa real</span>
-        <span style="font-size:0.75rem">↗</span>
-      </button>
-
-    </div>
-
-    <!-- ── RED ── -->
-    <div class="screen s-red" id="screen-red">
-
-      <div class="red-stat-row">
-        <div class="stat-box">
-          <div class="stat-num">3</div>
-          <div class="stat-lbl">NODOS</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num">12<span style="font-size:1rem">ms</span></div>
-          <div class="stat-lbl">LATENCIA</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num" style="font-size:1rem;padding-top:0.25rem">AES<br>256</div>
-          <div class="stat-lbl">CIFRADO</div>
-        </div>
-      </div>
-
-      <div class="peer-list">
-        <span class="peer-label">Peers conectados</span>
-
-        <div class="peer-item">
-          <div class="peer-sig sig-strong"></div>
-          <div class="peer-id">Nodo-A3F2</div>
-          <div class="peer-meta">
-            −48 dBm<br>
-            <span class="encrypt-badge">E2E</span>
-          </div>
-        </div>
-
-        <div class="peer-item">
-          <div class="peer-sig sig-strong"></div>
-          <div class="peer-id">Nodo-CC90</div>
-          <div class="peer-meta">
-            −55 dBm<br>
-            <span class="encrypt-badge">E2E</span>
-          </div>
-        </div>
-
-        <div class="peer-item">
-          <div class="peer-sig sig-med"></div>
-          <div class="peer-id">Nodo-77B1</div>
-          <div class="peer-meta">
-            −72 dBm<br>
-            <span class="encrypt-badge">E2E</span>
-          </div>
-        </div>
-
-        <span class="peer-label" style="margin-top:0.25rem">Detectados / sin conectar</span>
-
-        <div class="peer-item" style="opacity:0.5">
-          <div class="peer-sig sig-weak"></div>
-          <div class="peer-id">Nodo-??F9</div>
-          <div class="peer-meta">−88 dBm</div>
-        </div>
-
-      </div>
-
-      <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:0.9rem 1rem;">
-        <div class="peer-label" style="margin-bottom:0.5rem">Enrutamiento</div>
-        <div style="font-size:0.65rem;color:var(--dimmed);line-height:1.8">
-          TÚ → A3F2 → CC90 → [INTERNET]<br>
-          TÚ → 77B1 → [MESH LOCAL]
-        </div>
-      </div>
-
-    </div>
-  </div><!-- /scroll -->
-
-  <!-- NAVBAR -->
   <nav class="navbar">
     <button class="nav-item active" id="nav-nodo" onclick="navTo('nodo')">
       <span class="nav-icon">⬡</span>NODO
@@ -874,83 +366,67 @@
 </div>
 
 <script>
-  /* ── NAVEGACIÓN ── */
   function navTo(id) {
-    ['nodo','msg','ubi','red'].forEach(s => {
-      document.getElementById('screen-'+s).classList.remove('active');
-      document.getElementById('nav-'+s).classList.remove('active');
-    });
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-'+id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('nav-'+id).classList.add('active');
     document.getElementById('scroll').scrollTop = 0;
   }
 
-  /* ── QR ── */
-  const DEFAULT = 'socxima://connect?node=SOCXIMA-V3-ALPHA-88';
-  function renderQR(txt) {
-    QRCode.toCanvas(document.getElementById('qr-canvas'), txt, {
-      width: 220, margin: 1,
-      color: { dark: '#04060F', light: '#F4F4EE' }
-    });
-  }
-
-  /* ── SYNC SERVIDOR ── */
   async function sincronizar() {
     const url = document.getElementById('url-api').value.trim();
+    const estado = document.getElementById('node-status');
+    const badge = document.getElementById('node-badge');
+    const qrHero = document.getElementById('qr-hero');
+    const idNodo = document.getElementById('id-nodo');
+    const version = document.getElementById('firmware');
+    const activo = document.getElementById('actividad');
+    const enlace = document.getElementById('conn-pill');
+
+    estado.textContent = "CONECTANDO";
+    badge.classList.remove('offline');
+    qrHero.classList.add('offline-frame');
+
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
-      const d = await r.json();
-      setOnline(d);
-    } catch { setOffline(); }
+      const res = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(6000)
+      });
+      if (!res.ok) throw new Error("Sin respuesta");
+      const datos = await res.json();
+
+      estado.textContent = "ONLINE";
+      badge.classList.remove('offline');
+      qrHero.classList.remove('offline-frame');
+      idNodo.textContent = datos.id || "SOCXIMA-V3";
+      version.textContent = datos.version || "3.5.2-LTS-MESH";
+      activo.textContent = datos.activo_desde || "—";
+      enlace.textContent = `https://eveliollo.github.io/SOCXIMA-OFICIAL/?nodo=${url}`;
+      document.getElementById('qr-box').textContent = "✅ CONECTADO";
+
+    } catch (err) {
+      estado.textContent = "FALLBACK";
+      badge.classList.add('offline');
+      qrHero.classList.add('offline-frame');
+      document.getElementById('qr-box').textContent = "❌ Sin conexión";
+    }
   }
 
-  function setOnline(d) {
-    document.getElementById('node-badge').classList.remove('offline');
-    document.getElementById('node-status').textContent = 'ONLINE';
-    document.getElementById('qr-hero').classList.remove('offline-frame');
-    document.getElementById('id-nodo').textContent    = `RedSOCXIMA-V3-${d.id||'ALPHA-88'}`;
-    document.getElementById('actividad').textContent  = d.activo_desde || '—';
-    const link = d.invitacion_qr || `socxima://connect?node=SOCXIMA-V3-${d.id||'ALPHA-88'}`;
-    document.getElementById('conn-pill').textContent  = link;
-    document.getElementById('last-sync').textContent  = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
-    renderQR(link);
-  }
-
-  function setOffline() {
-    document.getElementById('node-badge').classList.add('offline');
-    document.getElementById('node-status').textContent = 'FALLBACK';
-    document.getElementById('qr-hero').classList.add('offline-frame');
-    renderQR(document.getElementById('conn-pill').textContent.trim());
-  }
-
-  /* ── PANEL TÉCNICO ── */
   function toggleTech() {
     document.getElementById('tech-btn').classList.toggle('open');
     document.getElementById('tech-body').classList.toggle('open');
   }
 
-  /* ── COPIAR ── */
   function copiarConn() {
-    const txt = document.getElementById('conn-pill').textContent.trim();
-    navigator.clipboard?.writeText(txt).catch(()=>{});
-    const f = document.getElementById('copy-flash');
-    f.classList.add('show');
-    setTimeout(()=>f.classList.remove('show'), 1400);
+    const texto = document.getElementById('conn-pill').textContent.trim();
+    navigator.clipboard.writeText(texto).catch(()=>{});
+    const aviso = document.getElementById('copy-flash');
+    aviso.classList.add('show');
+    setTimeout(() => aviso.classList.remove('show'), 1500);
   }
-
-  /* ── TOGGLES UBICACIÓN ── */
-  function toggleUbi(btn) {
-    const sw = document.getElementById('ubi-sw');
-    sw.classList.toggle('on');
-  }
-  function toggleUbi2() {}
-
-  /* ── INIT ── */
-  window.onload = () => {
-    renderQR(DEFAULT);
-    document.getElementById('last-sync').textContent =
-      new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
-  };
 </script>
 </body>
 </html>
